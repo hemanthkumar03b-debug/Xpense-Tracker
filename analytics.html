@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - Xpense Tracker</title>
+    <meta name="description" content="Xpense Tracker Analytics - Visualize your financial data with charts and insights.">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Boxicons -->
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class='bx bx-wallet'></i>
+            </div>
+            Xpense Tracker
+        </div>
+        
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+            <i class='bx bx-menu'></i>
+        </button>
+
+        <div class="nav-links" id="nav-links">
+            <a href="index.html">Dashboard</a>
+            <a href="index.html#transactions-section">Transactions</a>
+            <a href="analytics.html" class="active">Analytics</a>
+        </div>
+        <div class="nav-actions">
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Dark Mode">
+                <i class='bx bx-moon'></i>
+            </button>
+            <div class="avatar"><i class='bx bxs-user'></i></div>
+        </div>
+    </nav>
+
+    <div class="container pb-4">
+        <div class="header-section">
+            <div>
+                <h1>Financial Insights</h1>
+                <p class="text-muted">Track your spending patterns and budgets</p>
+            </div>
+            <div class="header-actions">
+                <div class="btn-group" id="analytics-filter-group">
+                    <button class="btn btn-outline active-filter" data-filter="this-month">This Month</button>
+                    <button class="btn btn-outline" data-filter="last-3-months">Last 3 Months</button>
+                    <button class="btn btn-outline" data-filter="custom">Custom</button>
+                </div>
+                <div class="custom-date-range" id="custom-date-range" style="display:none;">
+                    <input type="date" id="filter-date-from" class="form-control">
+                    <span class="text-muted" style="font-size:0.85rem;">to</span>
+                    <input type="date" id="filter-date-to" class="form-control">
+                    <button class="btn btn-primary" id="apply-custom-filter" style="width:auto;padding:0.5rem 1rem;font-size:0.8rem;">Apply</button>
+                </div>
+                <button class="btn btn-primary" onclick="exportData()"><i class='bx bx-download'></i> Export Report</button>
+            </div>
+        </div>
+
+        <!-- Insights Summary -->
+        <div class="summary-grid">
+            <div class="card summary-card">
+                <div class="summary-card-header">
+                    <h3>Total Spent</h3>
+                    <div class="summary-icon" style="background: rgba(79,70,229,0.1); color: var(--primary);">
+                        <i class='bx bx-money'></i>
+                    </div>
+                </div>
+                <div class="amount" id="analytics-total-spent">$0.00</div>
+                <div class="percentage down"><i class='bx bx-trending-down'></i> <span id="spent-change">0%</span> vs last month</div>
+            </div>
+            <div class="card summary-card">
+                <div class="summary-card-header">
+                    <h3>Average Daily Expense</h3>
+                    <div class="summary-icon" style="background: rgba(16,185,129,0.1); color: var(--success);">
+                        <i class='bx bx-calendar'></i>
+                    </div>
+                </div>
+                <div class="amount" id="analytics-avg-daily">$0.00</div>
+                <div class="percentage up"><i class='bx bx-trending-up'></i> <span>from avg</span></div>
+            </div>
+            <div class="card summary-card">
+                <div class="summary-card-header">
+                    <h3>Top Category</h3>
+                    <div class="summary-icon" style="background: rgba(245,158,11,0.1); color: #f59e0b;">
+                        <i class='bx bx-food-menu'></i>
+                    </div>
+                </div>
+                <div class="amount" id="analytics-top-category">N/A</div>
+                <div class="percentage" style="color: var(--text-muted);"><span id="top-cat-percent">0</span>% of total</div>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="analytics-grid">
+            <!-- Spending Over Time -->
+            <div class="card analytics-full">
+                <div class="chart-header">
+                    <h2>Spending over Time</h2>
+                    <div class="chart-legend-custom">
+                        <span class="legend-item"><span class="dot current"></span> Current Period</span>
+                        <span class="legend-item"><span class="dot previous"></span> Previous Period</span>
+                    </div>
+                </div>
+                <div class="chart-container large">
+                    <canvas id="spendingLineChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Spending by Category -->
+            <div class="card">
+                <h2>Spending by Category</h2>
+                <div class="chart-container">
+                    <canvas id="categoryDonutChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Income vs Expenses -->
+            <div class="card">
+                <h2>Income vs Expenses</h2>
+                <div class="chart-container">
+                    <canvas id="incomeExpenseBarChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Top Spending Categories List -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2>Top Spending Categories</h2>
+                    <button id="view-all-cats-btn" class="btn-text-primary text-sm font-medium">View All</button>
+                </div>
+                <div id="top-categories-list" class="progress-list">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Smart Savings Tip (Analytics) -->
+            <!-- <div class="card insight-card-vertical">
+                <div class="insight-content">
+                    <div class="icon-wrap">
+                        <i class='bx bxs-star'></i>
+                    </div>
+                    <h3>Smart Savings Tip</h3>
+                    <p id="analytics-insight">Based on your spending patterns, you have an opportunity to save more next month by analyzing your top spending category.</p>
+                    <button class="btn btn-white mt-4 w-full">Set Savings Goal</button>
+                </div>
+            </div> -->
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 Xpense Tracker. All rights reserved.</p>
+    </footer>
+
+    <script src="transactions.js"></script>
+    <script src="charts.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
